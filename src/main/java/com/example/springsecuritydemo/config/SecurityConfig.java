@@ -1,9 +1,12 @@
 package com.example.springsecuritydemo.config;
 
 
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,30 +22,32 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @EnableWebSecurity
 @Configuration
+@AllArgsConstructor
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity security) {
-         security
-                 .csrf(AbstractHttpConfigurer::disable)
-                 .authorizeHttpRequests(request -> request.anyRequest().authenticated())
-                 .httpBasic(Customizer.withDefaults())
-                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-         return security.build();
-    }
-
+    private UserDetailsService userDetailsService;
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public UserDetailsService userDetailsService(@Autowired PasswordEncoder passwordEncoder){
+    public AuthenticationProvider authenticationProvider(){
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
 
-        UserDetails user1 = User.withUsername("user1").password(passwordEncoder.encode("user1")).roles("USER").build();
-        UserDetails user2 = User.withUsername("user2").password(passwordEncoder.encode("user2")).roles("USER").build();
+        return authenticationProvider;
+    }
 
-        return new InMemoryUserDetailsManager(user1, user2);
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity security) {
+        security
+                .csrf(AbstractHttpConfigurer::disable)
+                .authenticationProvider(authenticationProvider())
+                .authorizeHttpRequests(request -> request.anyRequest().authenticated())
+                .httpBasic(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        return security.build();
     }
 }
