@@ -1,6 +1,7 @@
 package com.example.springsecuritydemo.controller;
 
 import com.example.springsecuritydemo.DAO.UserDAO;
+import com.example.springsecuritydemo.service.JWTService;
 import com.example.springsecuritydemo.service.UserRegistrationFlowService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,11 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserFlowController {
 
     private final UserRegistrationFlowService userRegistrationFlowService;
+    private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody UserDAO userDAO) {
-        userRegistrationFlowService.registerUser(userDAO.id(), userDAO.username(), userDAO.password());
+        userRegistrationFlowService.registerUser(userDAO.username(), userDAO.password());
         return new ResponseEntity<>("User Registered", HttpStatus.OK);
     }
 
@@ -31,6 +33,7 @@ public class UserFlowController {
                 userDAO.username() , userDAO.password()));
 
         if (auth.isAuthenticated()) {
+            jwtService.generateToken(userDAO.username());
             return new ResponseEntity<>("User Logged In", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Invalid Credentials", HttpStatus.UNAUTHORIZED);

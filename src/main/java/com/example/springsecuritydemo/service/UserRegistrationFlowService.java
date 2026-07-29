@@ -13,8 +13,8 @@ public class UserRegistrationFlowService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public void registerUser(int id , String username, String password) {
-        User user = new User(id , username, passwordEncoder.encode(password)
+    public void registerUser(String username, String password) {
+        User user = new User( username, passwordEncoder.encode(password)
         );
 
         userRepository.save(user);
