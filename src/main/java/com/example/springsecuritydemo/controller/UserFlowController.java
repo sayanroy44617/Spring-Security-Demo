@@ -33,8 +33,9 @@ public class UserFlowController {
                 userDAO.username() , userDAO.password()));
 
         if (auth.isAuthenticated()) {
-            jwtService.generateToken(userDAO.username());
-            return new ResponseEntity<>("User Logged In", HttpStatus.OK);
+            String token = jwtService.generateToken(userDAO.username());
+            System.out.println("Generated Token: " + token);
+            return new ResponseEntity<>(token , HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Invalid Credentials", HttpStatus.UNAUTHORIZED);
         }
